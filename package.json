@@ -1,0 +1,13 @@
+{
+  "name": "gif-editor",
+  "version": "1.0.0",
+  "description": "Simple video editor with text overlay using Electron and ffmpeg-fluent",
+  "main": "main.js",
+  "scripts": {
+    "start": "electron ."
+  },
+  "dependencies": {
+    "electron": "^25.0.0",
+    "fluent-ffmpeg": "^2.1.2"
+  }
+} 
