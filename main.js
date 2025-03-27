@@ -8,6 +8,7 @@ const os = require('os');
 const { URL } = require('url');
 const { clipboard } = require('electron');
 
+console.log('Main.js loaded');
 let mainWindow;
 
 function createWindow() {
@@ -22,6 +23,7 @@ function createWindow() {
 
     mainWindow.loadFile('index.html');
 }
+
 
 app.whenReady().then(createWindow);
 
@@ -38,6 +40,7 @@ app.on('activate', () => {
 });
 
 async function getTenorGifUrl(url) {
+    console.log('Getting Tenor GIF URL:', url);
     return new Promise((resolve, reject) => {
         const protocol = url.startsWith('https') ? https : http;
         console.log('Fetching Tenor URL:', url);
@@ -84,6 +87,8 @@ async function downloadVideo(url) {
     const isTenor = url.includes('tenor.com');
     const isGif = url.toLowerCase().endsWith('.gif');
     const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
+
+    console.log(isTenor, isGif, isVideo);
     
     let actualUrl = url;
     

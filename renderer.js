@@ -12,6 +12,7 @@ const fileInput = document.getElementById('file-input');
 const fileBtn = document.getElementById('file-btn');
 const copyBtn = document.getElementById('copy-btn');
 
+console.log('Renderer.js loaded');
 function handleFile(file) {
     if (file && file.type.startsWith('video/')) {
         currentVideoPath = file.path;
@@ -30,7 +31,10 @@ function handleUrl(url) {
         const videoUrl = new URL(url);
         const isGif = url.toLowerCase().endsWith('.gif');
 
+        console.log('in handleUrl', url);
+
         if (isGif) {
+            console.log('is gif', url);
             console.log('Sending GIF conversion request:', url);
             dropText.textContent = 'Converting GIF...';
             dropText.style.display = 'block';
@@ -40,6 +44,7 @@ function handleUrl(url) {
 
             ipcRenderer.send('convert-gif', url);
         } else {
+            console.log('is not gif', url);
             videoPreview.src = url;
             videoPreview.style.display = 'block';
             videoPreview.classList.add('has-video');
@@ -57,12 +62,15 @@ function handleUrl(url) {
 // URL input handling
 loadUrlBtn.addEventListener('click', () => {
     const url = urlInput.value.trim();
+    console.log('Loading URL early:', url);
     if (url) {
+        console.log('Loading URL:', url);
         handleUrl(url);
     }
 });
 
 urlInput.addEventListener('keypress', (e) => {
+    console.log('Loading URL early 2:');
     if (e.key === 'Enter') {
         const url = urlInput.value.trim();
         if (url) {
