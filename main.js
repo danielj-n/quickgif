@@ -259,11 +259,11 @@ ipcMain.on('copy-to-clipboard', async (event, { inputPath }) => {
                 .videoFilters([
                     {
                         filter: 'fps',
-                        options: '25'  // Keep smooth framerate
+                        options: '25'
                     },
                     {
                         filter: 'scale',
-                        options: 'iw:ih'  // Maintain original dimensions
+                        options: 'iw:ih'
                     }
                 ])
                 .on('end', () => resolve())
@@ -271,16 +271,36 @@ ipcMain.on('copy-to-clipboard', async (event, { inputPath }) => {
                 .save(outputPath);
         });
 
-        
-        // Read the GIF file
-        const buffer = fs.readFileSync(outputPath);
-        console.log('outputPath', outputPath);
+        //clipboard.writeBuffer('image/uri', 'file://${outputPath}');
+        // Create proper MIME data structure similar to KUrlMimeData
 
-        // Write to clipboard with both methods
-        clipboard.writeBuffer('image/gif', buffer);  // Basic method
+        /*
+        clipboard.write({
+            'text/uri-list': `file://${outputPath}`,
+            'text/plain': outputPath,
+            'application/x-kde-cutselection': '1',
+            'x-special/gnome-copied-files': `copy\nfile://${outputPath}`
+        });
+        //text/uri-list
+        //application/x-kde4-urilist
+        //application/vnd.portal.filetransfer
+        //application/x-kde-source-id
+        */
 
-        // Clean up temp file
-        fs.unlinkSync(outputPath);
+        clipboard.writeBuffer(
+            'text/uri-list',
+            Buffer.from(`file://${outputPath}`, 'utf8')
+        );
+
+
+        /* this works somehow
+        clipboard.write({
+            text: 'test',
+            html: '<b>Hi</b>',
+            rtf: '{\\rtf1\\utf8 text}',
+            bookmark: 'a title'
+        })
+        */
 
         event.reply('copy-complete');
     } catch (error) {
