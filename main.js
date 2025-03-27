@@ -39,49 +39,6 @@ app.on('activate', () => {
     }
 });
 
-async function getTenorGifUrl(url) {
-    console.log('Getting Tenor GIF URL:', url);
-    return new Promise((resolve, reject) => {
-        const protocol = url.startsWith('https') ? https : http;
-        console.log('Fetching Tenor URL:', url);
-        protocol.get(url, (response) => {
-            if (response.statusCode !== 200) {
-                console.error('Failed to fetch Tenor page:', response.statusCode);
-                reject(new Error(`Failed to fetch Tenor page: ${response.statusCode}`));
-                return;
-            }
-
-            let data = '';
-            response.on('data', chunk => data += chunk);
-            response.on('end', () => {
-                console.log('Received Tenor page HTML');
-                // Try multiple patterns to find the GIF URL
-                const patterns = [
-                    /<div class="Gif".+?<img src="(.+?)".+?></,
-                    /<img class="Gif".+?src="(.+?)".+?></,
-                    /<video class="Gif".+?src="(.+?)".+?></,
-                    /<source src="(.+?)".+?type="video\/mp4">/
-                ];
-
-                for (const pattern of patterns) {
-                    const match = data.match(pattern);
-                    if (match && match[1]) {
-                        console.log('Found GIF URL:', match[1]);
-                        resolve(match[1]);
-                        return;
-                    }
-                }
-
-                console.error('Could not find GIF URL in Tenor page');
-                reject(new Error('Could not find GIF URL in Tenor page'));
-            });
-        }).on('error', (err) => {
-            console.error('Error fetching Tenor page:', err);
-            reject(err);
-        });
-    });
-}
-
 async function downloadVideo(url) {
     // Check if it's a Tenor URL
     const isTenor = url.includes('tenor.com');
@@ -92,15 +49,6 @@ async function downloadVideo(url) {
     
     let actualUrl = url;
     
-    // If it's a Tenor URL but not directly to a media file, get the actual GIF URL
-    if (isTenor && !isGif && !isVideo) {
-        try {
-            actualUrl = await getTenorGifUrl(url);
-        } catch (err) {
-            throw new Error(`Failed to get Tenor GIF URL: ${err.message}`);
-        }
-    }
-
     const tempPath = path.join(os.tmpdir(), 
         isGif ? `temp_video_${Date.now()}.gif` : `temp_video_${Date.now()}.mp4`
     );
