@@ -77,10 +77,11 @@ async function handleUrl(url) {
         const videoUrl = new URL(url);
         const isGif = url.toLowerCase().endsWith('.gif');
         const isTenor = url.includes('tenor.com');
+        const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
 
         console.log('in handleUrl', url);
 
-        if (isTenor && !isGif) {
+        if (isTenor && !isGif && !isVideo) {
             try {
                 const actualUrl = await getTenorGifUrl(url);
                 console.log('Got Tenor URL:', actualUrl);
