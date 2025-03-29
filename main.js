@@ -130,7 +130,7 @@ async function downloadVideo(url) {
     });
 }
 
-ipcMain.on('render-video', async (event, { inputPath, text }) => {
+ipcMain.on('render-video', async (event, { inputPath, textBoxes }) => {
     try {
         let videoPath = inputPath;
         let isGif = false;
@@ -161,20 +161,28 @@ ipcMain.on('render-video', async (event, { inputPath, text }) => {
                 .fps(25); // Set reasonable framerate
         }
 
+        // Create drawtext filters for each text box
+        const drawTextFilters = textBoxes.map((textBox, index) => ({
+            filter: 'drawtext',
+            options: {
+                text: textBox.text,
+                fontsize: textBox.fontSize,
+                fontcolor: 'white',
+                x: `w*${textBox.x/100}-w*${textBox.width/200}`, // Center text horizontally
+                y: `h*${textBox.y/100}`, // Position vertically
+                shadowcolor: 'black',
+                shadowx: 2,
+                shadowy: 2,
+                font: 'Arial', // Use Arial font for consistency
+                line_spacing: 10, // Add some line spacing for multi-line text
+                box: 1, // Enable text box for better readability
+                boxcolor: 'black@0.5', // Semi-transparent black background
+                boxborderw: 5 // Add some padding around the text
+            }
+        }));
+
         ffmpegCommand
-            .videoFilters([{
-                filter: 'drawtext',
-                options: {
-                    text: text,
-                    fontsize: 48,
-                    fontcolor: 'white',
-                    x: '(w-text_w)/2',
-                    y: '(h-text_h)/2',
-                    shadowcolor: 'black',
-                    shadowx: 2,
-                    shadowy: 2
-                }
-            }])
+            .videoFilters(drawTextFilters)
             .save(outputPath)
             .on('end', () => {
                 // Clean up temporary file if it was a URL download

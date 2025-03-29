@@ -198,14 +198,33 @@ videoContainer.addEventListener('drop', (e) => {
 });
 
 renderBtn.addEventListener('click', () => {
-    if (!currentVideoPath || !textInput.value.trim()) return;
+    if (!currentVideoPath) return;
+
+    // Collect all text box information
+    const textBoxData = textBoxes.map(textBox => {
+        // Get the position relative to the video container
+        const rect = textBox.getBoundingClientRect();
+        const containerRect = videoContainer.getBoundingClientRect();
+        
+        // Calculate position as percentage of video dimensions
+        const x = ((rect.left - containerRect.left) / containerRect.width) * 100;
+        const y = ((rect.top - containerRect.top) / containerRect.height) * 100;
+        
+        return {
+            text: textBox.value,
+            x: x,
+            y: y,
+            fontSize: parseInt(textBox.style.fontSize || '24px'),
+            width: (rect.width / containerRect.width) * 100
+        };
+    });
 
     renderBtn.disabled = true;
     renderBtn.textContent = 'Rendering...';
 
     ipcRenderer.send('render-video', {
         inputPath: currentVideoPath,
-        text: textInput.value.trim()
+        textBoxes: textBoxData
     });
 });
 
@@ -214,6 +233,10 @@ ipcRenderer.on('render-complete', (event, outputPath) => {
     videoPreview.src = outputPath;
     renderBtn.disabled = false;
     renderBtn.textContent = 'Render';
+    
+    // Remove all text boxes after successful rendering
+    textBoxes.forEach(textBox => textBox.remove());
+    textBoxes = [];
 });
 
 ipcRenderer.on('render-error', (event, error) => {
