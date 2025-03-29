@@ -303,17 +303,32 @@ document.addEventListener('keydown', (e) => {
     if (!focusedTextBox) return;
 
     const step = 10; // pixels to move per keypress
+    const fontSizeStep = 4; // pixels to change font size
     
     switch(e.key) {
         case 'ArrowUp':
             e.preventDefault();
-            const currentTop = parseInt(focusedTextBox.style.top || '50%');
-            focusedTextBox.style.top = `${currentTop - step}%`;
+            if (e.shiftKey) {
+                // Increase font size
+                const currentSize = parseInt(focusedTextBox.style.fontSize || '24px');
+                focusedTextBox.style.fontSize = `${currentSize + fontSizeStep}px`;
+            } else {
+                // Move up
+                const currentTop = parseInt(focusedTextBox.style.top || '50%');
+                focusedTextBox.style.top = `${currentTop - step}%`;
+            }
             break;
         case 'ArrowDown':
             e.preventDefault();
-            const currentTopDown = parseInt(focusedTextBox.style.top || '50%');
-            focusedTextBox.style.top = `${currentTopDown + step}%`;
+            if (e.shiftKey) {
+                // Decrease font size
+                const currentSize = parseInt(focusedTextBox.style.fontSize || '24px');
+                focusedTextBox.style.fontSize = `${Math.max(8, currentSize - fontSizeStep)}px`;
+            } else {
+                // Move down
+                const currentTopDown = parseInt(focusedTextBox.style.top || '50%');
+                focusedTextBox.style.top = `${currentTopDown + step}%`;
+            }
             break;
         case 'ArrowLeft':
             e.preventDefault();
