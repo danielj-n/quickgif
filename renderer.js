@@ -14,6 +14,21 @@ const fileInput = document.getElementById('file-input');
 const fileBtn = document.getElementById('file-btn');
 const copyBtn = document.getElementById('copy-btn');
 
+// Track all text boxes
+let textBoxes = [];
+
+// Function to create a new text box
+function createNewTextBox() {
+    const textBox = document.createElement('textarea');
+    textBox.className = 'overlay-text-input';
+    textBox.placeholder = 'Type your text here...';
+    textBox.style.top = '50%';
+    textBox.style.left = '50%';
+    videoContainer.appendChild(textBox);
+    textBoxes.push(textBox);
+    return textBox;
+}
+
 console.log('Renderer.js loaded');
 
 async function getTenorGifUrl(url) {
@@ -266,4 +281,63 @@ ipcRenderer.on('copy-error', (event, error) => {
     alert('Error copying to clipboard: ' + error);
     copyBtn.textContent = 'Export';
     copyBtn.disabled = false;
+});
+
+// Add keyboard event handling for text overlay
+document.addEventListener('keydown', (e) => {
+    if (e.key.toLowerCase() === 't') {
+        // Check if any text box is focused
+        const focusedTextBox = document.querySelector('.overlay-text-input:focus');
+        if (!focusedTextBox) {
+            // Create new text box if none is focused
+            const newTextBox = createNewTextBox();
+            newTextBox.classList.add('active');
+            newTextBox.focus();
+        }
+    }
+});
+
+// Handle text input in overlay
+document.addEventListener('keydown', (e) => {
+    const focusedTextBox = document.querySelector('.overlay-text-input:focus');
+    if (!focusedTextBox) return;
+
+    const step = 10; // pixels to move per keypress
+    
+    switch(e.key) {
+        case 'ArrowUp':
+            e.preventDefault();
+            const currentTop = parseInt(focusedTextBox.style.top || '50%');
+            focusedTextBox.style.top = `${currentTop - step}%`;
+            break;
+        case 'ArrowDown':
+            e.preventDefault();
+            const currentTopDown = parseInt(focusedTextBox.style.top || '50%');
+            focusedTextBox.style.top = `${currentTopDown + step}%`;
+            break;
+        case 'ArrowLeft':
+            e.preventDefault();
+            const currentLeft = parseInt(focusedTextBox.style.left || '50%');
+            focusedTextBox.style.left = `${currentLeft - step}%`;
+            break;
+        case 'ArrowRight':
+            e.preventDefault();
+            const currentLeftRight = parseInt(focusedTextBox.style.left || '50%');
+            focusedTextBox.style.left = `${currentLeftRight + step}%`;
+            break;
+        case 'Escape':
+            focusedTextBox.blur();
+            break;
+        case 'Enter':
+            // Allow default behavior for newline
+            break;
+    }
+});
+
+// Auto-resize textarea as content is added
+document.addEventListener('input', function(e) {
+    if (e.target.classList.contains('overlay-text-input')) {
+        e.target.style.height = 'auto';
+        e.target.style.height = (e.target.scrollHeight) + 'px';
+    }
 }); 
