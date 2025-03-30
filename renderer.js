@@ -5,13 +5,8 @@ const http = require('http');
 let currentVideoPath = null;
 const videoPreview = document.getElementById('video-preview');
 const textInput = document.getElementById('text-input');
-const renderBtn = document.getElementById('render-btn');
 const videoContainer = document.getElementById('video-container');
 const dropText = document.getElementById('drop-text');
-const fileInput = document.getElementById('file-input');
-const fileBtn = document.getElementById('file-btn');
-const copyBtn = document.getElementById('copy-btn');
-
 // Track all text boxes
 let textBoxes = [];
 
@@ -78,8 +73,6 @@ function handleFile(file) {
         videoPreview.src = URL.createObjectURL(file);
         videoPreview.classList.add('has-video');
         dropText.style.display = 'none';
-        renderBtn.disabled = false;
-        copyBtn.disabled = false;
         videoPreview.play();
     }
 }
@@ -105,8 +98,6 @@ async function handleUrl(url) {
                     videoPreview.style.display = 'block';
                     videoPreview.classList.add('has-video');
                     dropText.style.display = 'none';
-                    renderBtn.disabled = false;
-                    copyBtn.disabled = false;
                     currentVideoPath = actualUrl;
                     videoPreview.play();
                 }
@@ -120,8 +111,6 @@ async function handleUrl(url) {
             dropText.textContent = 'Converting GIF...';
             dropText.style.display = 'block';
             videoPreview.style.display = 'none';
-            renderBtn.disabled = true;
-            copyBtn.disabled = true;
 
             ipcRenderer.send('convert-gif', url);
         } else {
@@ -130,8 +119,6 @@ async function handleUrl(url) {
             videoPreview.style.display = 'block';
             videoPreview.classList.add('has-video');
             dropText.style.display = 'none';
-            renderBtn.disabled = false;
-            copyBtn.disabled = false;
             currentVideoPath = url;
             videoPreview.play();
         }
@@ -174,7 +161,7 @@ videoContainer.addEventListener('drop', (e) => {
     handleFile(file);
 });
 
-renderBtn.addEventListener('click', () => {
+function render() {
     if (!currentVideoPath) return;
 
     // Get both the intrinsic and displayed video dimensions
@@ -199,22 +186,17 @@ renderBtn.addEventListener('click', () => {
         };
     });
 
-    renderBtn.disabled = true;
-    renderBtn.textContent = 'Rendering...';
-
     ipcRenderer.send('render-video', {
         inputPath: currentVideoPath,
         textBoxes: textBoxData,
         videoWidth: videoWidth,
         displayWidth: displayWidth
     });
-});
+};
 
 ipcRenderer.on('render-complete', (event, outputPath) => {
     currentVideoPath = outputPath;
     videoPreview.src = outputPath;
-    renderBtn.disabled = false;
-    renderBtn.textContent = 'Render';
     
     // Remove all text boxes after successful rendering
     textBoxes.forEach(textBox => textBox.remove());
@@ -223,8 +205,6 @@ ipcRenderer.on('render-complete', (event, outputPath) => {
 
 ipcRenderer.on('render-error', (event, error) => {
     alert('Error rendering video: ' + error);
-    renderBtn.disabled = false;
-    renderBtn.textContent = 'Render';
 });
 
 // Add handlers for GIF conversion events
@@ -235,8 +215,6 @@ ipcRenderer.on('gif-converted', (event, videoPath) => {
     videoPreview.style.display = 'block';
     videoPreview.classList.add('has-video');
     dropText.style.display = 'none';
-    renderBtn.disabled = false;
-    copyBtn.disabled = false;
     videoPreview.play();
 });
 
@@ -244,48 +222,19 @@ ipcRenderer.on('gif-conversion-error', (event, error) => {
     console.error('GIF conversion error:', error);
     alert('Error converting GIF: ' + error);
     dropText.textContent = 'Drag and drop a video here';
-    renderBtn.disabled = true;
 });
 
-// Add file input button handler
-fileBtn.addEventListener('click', () => {
-    fileInput.click();
-});
-
-// Handle file selection
-fileInput.addEventListener('change', (e) => {
-    const file = e.target.files[0];
-    if (file) {
-        handleFile(file);
-    }
-});
-
-// Add copy button handler
-copyBtn.addEventListener('click', () => {
+function exportToClipboard() {
     if (!currentVideoPath) return;
-
-    copyBtn.disabled = true;
-    copyBtn.textContent = 'Exporting...';
 
     ipcRenderer.send('copy-to-clipboard', {
         inputPath: currentVideoPath
     });
-});
-
-// Handle copy complete event
-ipcRenderer.on('copy-complete', () => {
-    copyBtn.textContent = 'Copied!';
-    setTimeout(() => {
-        copyBtn.textContent = 'Export';
-        copyBtn.disabled = false;
-    }, 2000);
-});
+}
 
 // Handle copy error event
 ipcRenderer.on('copy-error', (event, error) => {
     alert('Error copying to clipboard: ' + error);
-    copyBtn.textContent = 'Export';
-    copyBtn.disabled = false;
 });
 
 // Add keyboard event handling for text overlay
@@ -376,12 +325,12 @@ document.addEventListener('keydown', (e) => {
     if (e.key === 'Enter' && e.ctrlKey && !e.shiftKey) {
         e.preventDefault();
         if (currentVideoPath) {
-            copyBtn.click(); // Trigger the existing export functionality
+            exportToClipboard();
         }
     } else if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey) {
         e.preventDefault();
         if (currentVideoPath) {
-            renderBtn.click(); // Trigger the existing render functionality
+            render();
         }
     }
 }); 
