@@ -200,22 +200,25 @@ videoContainer.addEventListener('drop', (e) => {
 renderBtn.addEventListener('click', () => {
     if (!currentVideoPath) return;
 
+    // Get both the intrinsic and displayed video dimensions
+    const videoWidth = videoPreview.videoWidth;
+    const displayWidth = videoPreview.offsetWidth;
+
     // Collect all text box information
     const textBoxData = textBoxes.map(textBox => {
-        // Get the position relative to the video container
         const rect = textBox.getBoundingClientRect();
         const containerRect = videoContainer.getBoundingClientRect();
         
-        // Calculate position as percentage of video dimensions
-        const x = ((rect.left - containerRect.left) / containerRect.width) * 100;
-        const y = ((rect.top - containerRect.top) / containerRect.height) * 100;
+        // Calculate position relative to container rect?
+        const x = (rect.left - containerRect.left);
+        const y = (rect.top - containerRect.top);
         
         return {
             text: textBox.value,
             x: x,
             y: y,
             fontSize: parseInt(textBox.style.fontSize || '24px'),
-            width: (rect.width / containerRect.width) * 100
+            width: (rect.width / containerRect.width)
         };
     });
 
@@ -224,7 +227,9 @@ renderBtn.addEventListener('click', () => {
 
     ipcRenderer.send('render-video', {
         inputPath: currentVideoPath,
-        textBoxes: textBoxData
+        textBoxes: textBoxData,
+        videoWidth: videoWidth,
+        displayWidth: displayWidth
     });
 });
 

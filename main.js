@@ -130,7 +130,7 @@ async function downloadVideo(url) {
     });
 }
 
-ipcMain.on('render-video', async (event, { inputPath, textBoxes }) => {
+ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, displayWidth }) => {
     try {
         let videoPath = inputPath;
         let isGif = false;
@@ -162,22 +162,21 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes }) => {
         }
 
         // Create drawtext filters for each text box
+        const displayScaleFactor = videoWidth / displayWidth;
+        const fontScaleFactor = 1.5;
         const drawTextFilters = textBoxes.map((textBox, index) => ({
             filter: 'drawtext',
             options: {
                 text: textBox.text,
-                fontsize: textBox.fontSize,
+                fontsize: (textBox.fontSize * displayScaleFactor * fontScaleFactor), // Scale for both video size and display size
                 fontcolor: 'white',
-                x: `w*${textBox.x/100}-w*${textBox.width/200}`, // Center text horizontally
-                y: `h*${textBox.y/100}`, // Position vertically
+                x: `${textBox.x*displayScaleFactor}`, // Center text horizontally
+                y: `${textBox.y*displayScaleFactor}`, // Position vertically
                 shadowcolor: 'black',
                 shadowx: 2,
                 shadowy: 2,
                 font: 'Arial', // Use Arial font for consistency
-                line_spacing: 10, // Add some line spacing for multi-line text
-                box: 1, // Enable text box for better readability
-                boxcolor: 'black@0.5', // Semi-transparent black background
-                boxborderw: 5 // Add some padding around the text
+                line_spacing: 10 // Add some line spacing for multi-line text
             }
         }));
 
