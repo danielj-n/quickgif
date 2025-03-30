@@ -1,12 +1,10 @@
-const { ipcRenderer } = require('electron');
+const { ipcRenderer, clipboard } = require('electron');
 const https = require('https');
 const http = require('http');
 
 let currentVideoPath = null;
 const videoPreview = document.getElementById('video-preview');
 const textInput = document.getElementById('text-input');
-const urlInput = document.getElementById('url-input');
-const loadUrlBtn = document.getElementById('load-url-btn');
 const renderBtn = document.getElementById('render-btn');
 const videoContainer = document.getElementById('video-container');
 const dropText = document.getElementById('drop-text');
@@ -82,7 +80,6 @@ function handleFile(file) {
         dropText.style.display = 'none';
         renderBtn.disabled = false;
         copyBtn.disabled = false;
-        urlInput.value = '';
         videoPreview.play();
     }
 }
@@ -142,26 +139,6 @@ async function handleUrl(url) {
         alert('Please enter a valid URL');
     }
 }
-
-// URL input handling
-loadUrlBtn.addEventListener('click', () => {
-    const url = urlInput.value.trim();
-    console.log('Loading URL early:', url);
-    if (url) {
-        console.log('Loading URL:', url);
-        handleUrl(url);
-    }
-});
-
-urlInput.addEventListener('keypress', (e) => {
-    console.log('Loading URL early 2:');
-    if (e.key === 'Enter') {
-        const url = urlInput.value.trim();
-        if (url) {
-            handleUrl(url);
-        }
-    }
-});
 
 // Prevent default drag behaviors
 ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
@@ -382,5 +359,29 @@ document.addEventListener('input', function(e) {
     if (e.target.classList.contains('overlay-text-input')) {
         e.target.style.height = 'auto';
         e.target.style.height = (e.target.scrollHeight) + 'px';
+    }
+});
+
+// Add clipboard URL check on startup
+window.addEventListener('load', () => {
+    const clipboardText = clipboard.readText().trim();
+    if (clipboardText) {
+        console.log('Found URL in clipboard:', clipboardText);
+        handleUrl(clipboardText);
+    }
+});
+
+// Add keyboard shortcuts for render and export
+document.addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.ctrlKey && !e.shiftKey) {
+        e.preventDefault();
+        if (currentVideoPath) {
+            copyBtn.click(); // Trigger the existing export functionality
+        }
+    } else if (e.key === 'Enter' && e.shiftKey && !e.ctrlKey) {
+        e.preventDefault();
+        if (currentVideoPath) {
+            renderBtn.click(); // Trigger the existing render functionality
+        }
     }
 }); 
