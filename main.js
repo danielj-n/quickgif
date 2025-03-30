@@ -163,7 +163,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
 
         // Create drawtext filters for each text box
         const displayScaleFactor = videoWidth / displayWidth;
-        const fontScaleFactor = 1.5;
+        const fontScaleFactor = 1.05;
         const drawTextFilters = textBoxes.map((textBox, index) => ({
             filter: 'drawtext',
             options: {
