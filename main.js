@@ -164,25 +164,34 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
         // Create drawtext filters for each text box
         const displayScaleFactor = videoWidth / displayWidth;
         const fontScaleFactor = 1.05;
-        const drawTextFilters = textBoxes.map((textBox, index) => ({
-            filter: 'drawtext',
-            options: {
-                text: textBox.text,
-                fontsize: (textBox.fontSize * displayScaleFactor * fontScaleFactor), // Scale for both video size and display size
-                fontcolor: 'white',
-                x: `${textBox.x*displayScaleFactor}`, // Center text horizontally
-                y: `${textBox.y*displayScaleFactor}`, // Position vertically
-                shadowcolor: 'black',
-                shadowx: 2,
-                shadowy: 2,
-                font: 'Arial', // Use Arial font for consistency
-                line_spacing: 10 // Add some line spacing for multi-line text
+        const drawTextFilters = textBoxes.map((textBox, index) => {
+            return {
+                filter: 'drawtext',
+                options: {
+                    text: (textBox.text.replace(/\\/g, '\\\\\\\\\\\\\\\\')
+                        .replace(/:/g, '\\\\:') 
+                        //.replace(/'/g, "\\\\'")
+                        .replace(/%/g, '\\\\%')
+                        .replace(/,/g, '\\\\,')),
+                    fontsize: (textBox.fontSize * displayScaleFactor * fontScaleFactor),
+                    fontcolor: 'white',
+                    x: `${textBox.x*displayScaleFactor}`,
+                    y: `${textBox.y*displayScaleFactor}`,
+                    shadowcolor: 'black',
+                    shadowx: 2,
+                    shadowy: 2,
+                    font: 'Arial',
+                    line_spacing: 10
+                }
             }
-        }));
+        });
 
         ffmpegCommand
             .videoFilters(drawTextFilters)
             .save(outputPath)
+            .on('start', (command) => {
+                console.log('FFmpeg command:', command);
+            })
             .on('end', () => {
                 // Clean up temporary file if it was a URL download
                 if (inputPath.startsWith('http')) {
@@ -314,4 +323,12 @@ ipcMain.on('copy-to-clipboard', async (event, { inputPath }) => {
         console.error('Error during copy:', error);
         event.reply('copy-error', error.message);
     }
+});
+
+// Add this near the top with other IPC handlers
+ipcMain.on('video-loaded', (event, { width, height }) => {
+    // Add a small padding to account for window borders/chrome
+    const padding = 0;  // Adjust if needed
+    mainWindow.setContentSize(width + padding, height + padding);
+    mainWindow.center(); // Re-center the window after resize
 }); 

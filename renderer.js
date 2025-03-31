@@ -333,4 +333,11 @@ document.addEventListener('keydown', (e) => {
             render();
         }
     }
+});
+
+// Add this to the video element's loadedmetadata event
+videoPreview.addEventListener('loadedmetadata', () => {
+    const width = videoPreview.videoWidth;
+    const height = videoPreview.videoHeight;
+    ipcRenderer.send('video-loaded', { width, height });
 }); 
