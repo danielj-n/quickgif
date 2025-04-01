@@ -177,10 +177,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
                     fontcolor: 'white',
                     x: `${textBox.x*displayScaleFactor}`,
                     y: `${textBox.y*displayScaleFactor}`,
-                    shadowcolor: 'black',
-                    shadowx: 2,
-                    shadowy: 2,
-                    font: 'Arial',
+                    fontfile: 'impact.ttf',
                     line_spacing: 10
                 }
             }
