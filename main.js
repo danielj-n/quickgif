@@ -7,6 +7,7 @@ const fs = require('fs');
 const os = require('os');
 const { URL } = require('url');
 const { clipboard } = require('electron');
+const crypto = require('crypto');
 
 console.log('Main.js loaded');
 let mainWindow;
@@ -150,7 +151,8 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
             isGif = inputPath.toLowerCase().endsWith('.gif');
         }
 
-        const outputPath = videoPath.replace(/\.[^/.]+$/, "") + "_edited.webm";
+        // Remove any existing UUID pattern and add a new one
+        const outputPath = path.dirname(videoPath) + "/" + crypto.randomUUID() + ".webm"; 
         
         let ffmpegCommand = ffmpeg(videoPath);
 

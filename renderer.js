@@ -161,8 +161,19 @@ videoContainer.addEventListener('drop', (e) => {
     handleFile(file);
 });
 
+function createRenderOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'render-overlay';
+    overlay.textContent = 'Rendering...';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
 function render() {
     if (!currentVideoPath) return;
+
+    // Create a new rendering overlay for this specific render operation
+    const renderOverlay = createRenderOverlay();
 
     // Get both the intrinsic and displayed video dimensions
     const videoWidth = videoPreview.videoWidth;
@@ -190,13 +201,21 @@ function render() {
         inputPath: currentVideoPath,
         textBoxes: textBoxData,
         videoWidth: videoWidth,
-        displayWidth: displayWidth
+        displayWidth: displayWidth,
+        overlayId: renderOverlay.id // Not strictly necessary but might be useful later
     });
 };
 
 ipcRenderer.on('render-complete', (event, outputPath) => {
+    console.log('Render complete:', outputPath);
     currentVideoPath = outputPath;
     videoPreview.src = outputPath;
+    
+    // Remove all render overlays that have completed
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        overlay.remove();
+    });
     
     // Remove all text boxes after successful rendering
     textBoxes.forEach(textBox => textBox.remove());
@@ -204,6 +223,11 @@ ipcRenderer.on('render-complete', (event, outputPath) => {
 });
 
 ipcRenderer.on('render-error', (event, error) => {
+    // Remove all render overlays on error
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        overlay.remove();
+    });
     alert('Error rendering video: ' + error);
 });
 
