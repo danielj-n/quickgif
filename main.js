@@ -170,9 +170,9 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
                 options: {
                     text: (textBox.text.replace(/\\/g, '\\\\\\\\\\\\\\\\')
                         .replace(/:/g, '\\\\:') 
-                        //.replace(/'/g, "\\\\'")
                         .replace(/%/g, '\\\\%')
-                        .replace(/,/g, '\\\\,')),
+                        .replace(/,/g, '\\\\,')
+                        .replace(/'/g, '')), // get rid of single quotes because they're buggy
                     fontsize: (textBox.fontSize * displayScaleFactor * fontScaleFactor),
                     fontcolor: 'white',
                     x: `${textBox.x*displayScaleFactor}`,
@@ -287,36 +287,10 @@ ipcMain.on('copy-to-clipboard', async (event, { inputPath }) => {
                 .save(outputPath);
         });
 
-        //clipboard.writeBuffer('image/uri', 'file://${outputPath}');
-        // Create proper MIME data structure similar to KUrlMimeData
-
-        /*
-        clipboard.write({
-            'text/uri-list': `file://${outputPath}`,
-            'text/plain': outputPath,
-            'application/x-kde-cutselection': '1',
-            'x-special/gnome-copied-files': `copy\nfile://${outputPath}`
-        });
-        //text/uri-list
-        //application/x-kde4-urilist
-        //application/vnd.portal.filetransfer
-        //application/x-kde-source-id
-        */
-
         clipboard.writeBuffer(
             'text/uri-list',
             Buffer.from(`file://${outputPath}`, 'utf8')
         );
-
-
-        /* this works somehow
-        clipboard.write({
-            text: 'test',
-            html: '<b>Hi</b>',
-            rtf: '{\\rtf1\\utf8 text}',
-            bookmark: 'a title'
-        })
-        */
 
         event.reply('copy-complete');
     } catch (error) {
