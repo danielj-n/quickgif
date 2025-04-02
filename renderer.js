@@ -271,6 +271,7 @@ document.addEventListener('keydown', (e) => {
             const newTextBox = createNewTextBox();
             newTextBox.classList.add('active');
             newTextBox.focus();
+            e.preventDefault();
         }
     }
 });
