@@ -131,6 +131,68 @@ async function downloadVideo(url) {
     });
 }
 
+async function downloadFile(url) {
+    // Map of content types to file extensions
+    const contentTypeMap = {
+        'image/gif': 'gif',
+        'video/mp4': 'mp4',
+        'video/webm': 'webm',
+        'video/quicktime': 'mov'
+    };
+
+    const tempInputPath = await new Promise((resolve, reject) => {
+        const protocol = url.startsWith('https') ? https : http;
+        protocol.get(url, (response) => {
+            if (response.statusCode !== 200) {
+                reject(new Error(`Failed to download: ${response.statusCode}`));
+                return;
+            }
+
+            // Get content type from headers
+            const contentType = response.headers['content-type']?.split(';')[0];
+            console.log('Content-Type:', contentType);
+            
+            // Determine file extension from content type, fallback to 'mp4'
+            const extension = contentTypeMap[contentType] || 'mp4';
+            const filePath = path.join(os.tmpdir(), `temp_input_${Date.now()}.${extension}`);
+            
+            const fileStream = fs.createWriteStream(filePath);
+            response.pipe(fileStream);
+            
+            fileStream.on('finish', () => resolve(filePath));
+            fileStream.on('error', reject);
+        }).on('error', reject);
+    });
+
+    return tempInputPath;
+}
+
+async function convertToWebm(inputPath, isGif) {
+    const tempOutputPath = path.join(os.tmpdir(), `temp_output_${Date.now()}.webm`);
+    
+    await new Promise((resolve, reject) => {
+        let command = ffmpeg(inputPath);
+        
+        if (isGif) {
+            command = command.inputOptions(['-ignore_loop', '1']);
+        }
+        
+        command
+            .fps(25)
+            .save(tempOutputPath)
+            .on('end', () => {
+                fs.unlink(inputPath, () => {});
+                resolve();
+            })
+            .on('error', (err) => {
+                fs.unlink(inputPath, () => {});
+                reject(err);
+            });
+    });
+
+    return tempOutputPath;
+}
+
 ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, displayWidth }) => {
     try {
         let videoPath = inputPath;
@@ -210,54 +272,18 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
     }
 });
 
-// Add a new IPC handler for converting GIFs to videos
-ipcMain.on('convert-gif', async (event, url) => {
-    console.log('Starting GIF conversion:', url); // Debug log
+ipcMain.on('download-media', async (event, url) => {
+    console.log('Starting media conversion:', url);
+    console.log("url:", url);
+    
     try {
-        // Download the GIF to temp directory
-        const tempGifPath = path.join(os.tmpdir(), `temp_gif_${Date.now()}.gif`);
-        const tempVideoPath = path.join(os.tmpdir(), `temp_video_${Date.now()}.webm`);
-        
-        console.log('Downloading GIF to:', tempGifPath); // Debug log
-
-        // Download using https or http
-        await new Promise((resolve, reject) => {
-            const protocol = url.startsWith('https') ? https : require('http');
-            protocol.get(url, (response) => {
-                if (response.statusCode !== 200) {
-                    reject(new Error(`Failed to download: ${response.statusCode}`));
-                    return;
-                }
-                const fileStream = fs.createWriteStream(tempGifPath);
-                response.pipe(fileStream);
-                fileStream.on('finish', resolve);
-                fileStream.on('error', reject);
-            }).on('error', reject);
-        });
-
-        // Convert GIF to video using ffmpeg
-        ffmpeg(tempGifPath)
-            .inputOptions(['-ignore_loop', '1'])
-            .fps(25)
-            .save(tempVideoPath)
-            .on('start', (command) => {
-                console.log('FFmpeg started:', command); // Debug log
-            })
-            .on('progress', (progress) => {
-                console.log(progress.timemark);
-            })
-            .on('end', () => {
-                console.log('Conversion complete:', tempVideoPath); // Debug log
-                fs.unlink(tempGifPath, () => {});
-                event.reply('gif-converted', tempVideoPath);
-            })
-            .on('error', (err) => {
-                console.error('FFmpeg error:', err); // Debug log
-                fs.unlink(tempGifPath, () => {});
-                event.reply('gif-conversion-error', err.message);
-            });
+        const downloadedPath = await downloadFile(url);
+        console.log('download-media:', downloadedPath);
+        const isGif = downloadedPath.toLowerCase().endsWith('.gif');
+        const outputPath = await convertToWebm(downloadedPath, isGif);
+        event.reply('gif-converted', outputPath);
     } catch (err) {
-        console.error('Conversion error:', err); // Debug log
+        console.error('Conversion error:', err);
         event.reply('gif-conversion-error', err.message);
     }
 });

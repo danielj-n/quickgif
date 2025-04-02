@@ -77,52 +77,42 @@ function handleFile(file) {
     }
 }
 
+function createDownloadOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'render-overlay'; // Reusing the same style
+    overlay.textContent = 'Downloading...';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
 async function handleUrl(url) {
     try {
-        const videoUrl = new URL(url);
-        const isGif = url.toLowerCase().endsWith('.gif');
-        const isTenor = url.includes('tenor.com');
-        const isVideo = url.toLowerCase().endsWith('.mp4') || url.toLowerCase().endsWith('.webm');
-
+        const isTenor = url.includes('tenor.com/view/');
         console.log('in handleUrl', url);
+        console.log('isTenor', isTenor);
 
-        if (isTenor && !isGif && !isVideo) {
+        // Show download overlay
+        const downloadOverlay = createDownloadOverlay();
+
+        if (isTenor) {
             try {
                 const actualUrl = await getTenorGifUrl(url);
                 console.log('Got Tenor URL:', actualUrl);
-                // Now handle as a regular gif/video
-                if (actualUrl.toLowerCase().endsWith('.gif')) {
-                    ipcRenderer.send('convert-gif', actualUrl);
-                } else {
-                    videoPreview.src = actualUrl;
-                    videoPreview.style.display = 'block';
-                    videoPreview.classList.add('has-video');
-                    dropText.style.display = 'none';
-                    currentVideoPath = actualUrl;
-                    videoPreview.play();
-                }
+                ipcRenderer.send('download-media', actualUrl);
             } catch (err) {
+                downloadOverlay.remove(); // Remove overlay on error
                 console.error('Failed to get Tenor URL:', err);
                 alert('Failed to load Tenor GIF: ' + err.message);
             }
-        } else if (isGif) {
-            console.log('is gif', url);
-            console.log('Sending GIF conversion request:', url);
-            dropText.textContent = 'Converting GIF...';
-            dropText.style.display = 'block';
-            videoPreview.style.display = 'none';
-
-            ipcRenderer.send('convert-gif', url);
         } else {
-            console.log('is not gif', url);
-            videoPreview.src = url;
-            videoPreview.style.display = 'block';
-            videoPreview.classList.add('has-video');
-            dropText.style.display = 'none';
-            currentVideoPath = url;
-            videoPreview.play();
-        }
+            ipcRenderer.send('download-media', url);
+        } 
     } catch (e) {
+        // Remove any existing download overlays
+        const overlays = document.getElementsByClassName('render-overlay');
+        Array.from(overlays).forEach(overlay => {
+            if (overlay.textContent === 'Downloading...') overlay.remove();
+        });
         alert('Please enter a valid URL');
     }
 }
@@ -240,12 +230,23 @@ ipcRenderer.on('gif-converted', (event, videoPath) => {
     videoPreview.classList.add('has-video');
     dropText.style.display = 'none';
     videoPreview.play();
+    
+    // Remove download overlay
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        if (overlay.textContent === 'Downloading...') overlay.remove();
+    });
 });
 
 ipcRenderer.on('gif-conversion-error', (event, error) => {
     console.error('GIF conversion error:', error);
     alert('Error converting GIF: ' + error);
-    dropText.textContent = 'Drag and drop a video here';
+    
+    // Remove download overlay
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        if (overlay.textContent === 'Downloading...') overlay.remove();
+    });
 });
 
 function exportToClipboard() {
