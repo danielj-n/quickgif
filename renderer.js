@@ -117,39 +117,10 @@ async function handleUrl(url) {
     }
 }
 
-// Prevent default drag behaviors
-['dragenter', 'dragover', 'dragleave', 'drop'].forEach(eventName => {
-    document.body.addEventListener(eventName, preventDefaults, false);
-    videoContainer.addEventListener(eventName, preventDefaults, false);
-});
-
 function preventDefaults(e) {
     e.preventDefault();
     e.stopPropagation();
 }
-
-// Handle drop zone highlighting
-['dragenter', 'dragover'].forEach(eventName => {
-    videoContainer.addEventListener(eventName, highlight, false);
-});
-
-['dragleave', 'drop'].forEach(eventName => {
-    videoContainer.addEventListener(eventName, unhighlight, false);
-});
-
-function highlight(e) {
-    videoContainer.classList.add('drag-over');
-}
-
-function unhighlight(e) {
-    videoContainer.classList.remove('drag-over');
-}
-
-// Handle dropped files
-videoContainer.addEventListener('drop', (e) => {
-    const file = e.dataTransfer.files[0];
-    handleFile(file);
-});
 
 function createRenderOverlay() {
     const overlay = document.createElement('div');
@@ -172,18 +143,18 @@ function render() {
     // Collect all text box information
     const textBoxData = textBoxes.map(textBox => {
         const rect = textBox.getBoundingClientRect();
-        const containerRect = videoContainer.getBoundingClientRect();
+        const videoRect = videoPreview.getBoundingClientRect();
         
         // Calculate position relative to container rect?
-        const x = (rect.left - containerRect.left);
-        const y = (rect.top - containerRect.top);
+        const x = (rect.left - videoRect.left);
+        const y = (rect.top - videoRect.top);
         
         return {
             text: textBox.value,
             x: x,
             y: y,
             fontSize: parseInt(textBox.style.fontSize || '24px'),
-            width: (rect.width / containerRect.width)
+            width: (rect.width / videoRect.width)
         };
     });
 

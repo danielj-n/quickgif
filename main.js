@@ -227,7 +227,6 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
 
         // Create drawtext filters for each text box
         const displayScaleFactor = videoWidth / displayWidth;
-        const fontScaleFactor = 1.05;
         const drawTextFilters = textBoxes.map((textBox, index) => {
             return {
                 filter: 'drawtext',
@@ -237,7 +236,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
                         .replace(/%/g, '\\\\%')
                         .replace(/,/g, '\\\\,')
                         .replace(/'/g, '')), // get rid of single quotes because they're buggy
-                    fontsize: (textBox.fontSize * displayScaleFactor * fontScaleFactor),
+                    fontsize: (textBox.fontSize * displayScaleFactor),
                     fontcolor: 'white',
                     x: `${textBox.x*displayScaleFactor}`,
                     y: `${textBox.y*displayScaleFactor}`,
