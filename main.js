@@ -167,8 +167,8 @@ async function downloadFile(url) {
     return tempInputPath;
 }
 
-async function convertToWebm(inputPath, isGif) {
-    const tempOutputPath = path.join(os.tmpdir(), `temp_output_${Date.now()}.webm`);
+async function convertToMp4(inputPath, isGif) {
+    const tempOutputPath = path.join(os.tmpdir(), `temp_output_${Date.now()}.mp4`);
     
     await new Promise((resolve, reject) => {
         let command = ffmpeg(inputPath);
@@ -214,7 +214,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
         }
 
         // Remove any existing UUID pattern and add a new one
-        const outputPath = path.dirname(videoPath) + "/" + crypto.randomUUID() + ".webm"; 
+        const outputPath = path.dirname(videoPath) + "/" + crypto.randomUUID() + ".mp4"; 
         
         let ffmpegCommand = ffmpeg(videoPath);
 
@@ -280,7 +280,7 @@ ipcMain.on('download-media', async (event, url) => {
         const downloadedPath = await downloadFile(url);
         console.log('download-media:', downloadedPath);
         const isGif = downloadedPath.toLowerCase().endsWith('.gif');
-        const outputPath = await convertToWebm(downloadedPath, isGif);
+        const outputPath = await convertToMp4(downloadedPath, isGif);
         event.reply('gif-converted', outputPath);
     } catch (err) {
         console.error('Conversion error:', err);
