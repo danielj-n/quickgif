@@ -335,9 +335,11 @@ document.addEventListener('input', function(e) {
 // Add clipboard URL check on startup
 window.addEventListener('load', () => {
     const clipboardText = clipboard.readText().trim();
-    if (clipboardText) {
+    if (clipboardText && clipboardText.length > 0) {
         console.log('Found URL in clipboard:', clipboardText);
         handleUrl(clipboardText);
+    } else {
+        alert('No URL found in clipboard');
     }
 });
 

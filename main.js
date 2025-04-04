@@ -229,6 +229,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
         const displayScaleFactor = videoWidth / displayWidth;
         const drawTextFilters = textBoxes.map((textBox, index) => {
             const displayOffsetY = 0.105 * textBox.fontSize;
+            const lineSpacing = 1 - 0.25 * textBox.fontSize; // Dynamic line spacing based on font size
             return {
                 filter: 'drawtext',
                 options: {
@@ -242,7 +243,7 @@ ipcMain.on('render-video', async (event, { inputPath, textBoxes, videoWidth, dis
                     x: `${textBox.x*displayScaleFactor}`,
                     y: `${(textBox.y + displayOffsetY)*displayScaleFactor}`,
                     fontfile: 'impact.ttf',
-                    line_spacing: 10
+                    line_spacing: lineSpacing
                 }
             }
         });
