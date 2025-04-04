@@ -145,13 +145,17 @@
             z-index: 1000;
             cursor: move;
             user-select: none;
+            white-space: nowrap;
+            overflow-x: auto;
+            overflow-y: hidden;
             resize: none;
+            width: 1000px;
             overflow: hidden;
             min-height: 1em;
             max-height: 80vh;
             white-space: pre-wrap;
             font-family: 'impactCustom', sans-serif;
-            line-height: 1;
+            line-height: 1.2;
         }
         .overlay-text-input.active {
             display: block;
@@ -161,6 +165,9 @@
         }
         .render-overlay {
             position: fixed;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
             background-color: rgba(0, 0, 0, 0.7);
             color: white;
             padding: 20px 40px;

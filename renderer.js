@@ -220,16 +220,40 @@ ipcRenderer.on('gif-conversion-error', (event, error) => {
     });
 });
 
+function createExportOverlay() {
+    const overlay = document.createElement('div');
+    overlay.className = 'render-overlay'; // Reusing the same style
+    overlay.textContent = 'Exporting...';
+    document.body.appendChild(overlay);
+    return overlay;
+}
+
 function exportToClipboard() {
     if (!currentVideoPath) return;
+
+    // Show export overlay
+    const exportOverlay = createExportOverlay();
 
     ipcRenderer.send('copy-to-clipboard', {
         inputPath: currentVideoPath
     });
 }
 
-// Handle copy error event
+// Update the copy complete/error handlers
+ipcRenderer.on('copy-complete', () => {
+    // Remove export overlay
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        if (overlay.textContent === 'Exporting...') overlay.remove();
+    });
+});
+
 ipcRenderer.on('copy-error', (event, error) => {
+    // Remove export overlay
+    const overlays = document.getElementsByClassName('render-overlay');
+    Array.from(overlays).forEach(overlay => {
+        if (overlay.textContent === 'Exporting...') overlay.remove();
+    });
     alert('Error copying to clipboard: ' + error);
 });
 
