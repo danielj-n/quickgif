@@ -36,18 +36,10 @@
             border-radius: 8px;
             box-shadow: 0 2px 10px rgba(0,0,0,0.1);
             display: none;
+            pointer-events: none;
         }
         video.has-video {
             display: block;
-        }
-        video:hover {
-            cursor: none;
-        }
-        video:hover::-webkit-media-controls-panel {
-            display: none !important;
-        }
-        video::-webkit-media-controls-panel {
-            transition: all 0.3s ease;
         }
         #text-input, #url-input {
             padding: 10px;
@@ -187,7 +179,7 @@
 <body>
     <div id="video-container">
         <div id="drop-text"></div>
-        <video id="video-preview" controls autoplay loop muted>
+        <video id="video-preview" autoplay loop muted>
             Your browser does not support the video element.
         </video>
     </div>

@@ -22,6 +22,8 @@ function createWindow() {
         }
     });
 
+    mainWindow.setMenuBarVisibility(false);
+
     mainWindow.loadFile('index.html');
 }
 
@@ -330,5 +332,4 @@ ipcMain.on('video-loaded', (event, { width, height }) => {
     // Add a small padding to account for window borders/chrome
     const padding = 0;  // Adjust if needed
     mainWindow.setContentSize(width + padding, height + padding);
-    mainWindow.center(); // Re-center the window after resize
 }); 

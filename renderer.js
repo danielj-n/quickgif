@@ -10,6 +10,11 @@ const dropText = document.getElementById('drop-text');
 // Track all text boxes
 let textBoxes = [];
 
+// Add these variables near the top with other globals
+let isDragging = false;
+let currentDragElement = null;
+let dragOffset = { x: 0, y: 0 };
+
 // Function to create a new text box
 function createNewTextBox() {
     const textBox = document.createElement('textarea');
@@ -363,4 +368,39 @@ videoPreview.addEventListener('loadedmetadata', () => {
     const width = videoPreview.videoWidth;
     const height = videoPreview.videoHeight;
     ipcRenderer.send('video-loaded', { width, height });
+});
+
+// Add these event listeners after other document.addEventListener calls
+document.addEventListener('mousedown', (e) => {
+    if (textBoxes.length > 0) {
+        isDragging = true;
+        currentDragElement = textBoxes[textBoxes.length - 1];
+        
+        // Calculate offset between mouse and element position
+        const rect = currentDragElement.getBoundingClientRect();
+        dragOffset.x = e.clientX - rect.left;
+        dragOffset.y = e.clientY - rect.top;
+        
+        // Prevent text selection during drag
+        e.preventDefault();
+    }
+});
+
+document.addEventListener('mousemove', (e) => {
+    if (isDragging && currentDragElement) {
+        const videoRect = videoPreview.getBoundingClientRect();
+        
+        // Calculate new position relative to video container
+        const newLeft = ((e.clientX - dragOffset.x - videoRect.left) / videoRect.width) * 100;
+        const newTop = ((e.clientY - dragOffset.y - videoRect.top) / videoRect.height) * 100;
+        
+        // Update position
+        currentDragElement.style.left = `${newLeft}%`;
+        currentDragElement.style.top = `${newTop}%`;
+    }
+});
+
+document.addEventListener('mouseup', () => {
+    isDragging = false;
+    currentDragElement = null;
 }); 
