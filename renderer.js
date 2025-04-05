@@ -262,21 +262,6 @@ ipcRenderer.on('copy-error', (event, error) => {
     alert('Error copying to clipboard: ' + error);
 });
 
-// Add keyboard event handling for text overlay
-document.addEventListener('keydown', (e) => {
-    if (e.key.toLowerCase() === 't') {
-        // Check if any text box is focused
-        const focusedTextBox = document.querySelector('.overlay-text-input:focus');
-        if (!focusedTextBox) {
-            // Create new text box if none is focused
-            const newTextBox = createNewTextBox();
-            newTextBox.classList.add('active');
-            newTextBox.focus();
-            e.preventDefault();
-        }
-    }
-});
-
 // Handle text input in overlay
 document.addEventListener('keydown', (e) => {
     const focusedTextBox = document.querySelector('.overlay-text-input:focus');
@@ -323,9 +308,6 @@ document.addEventListener('keydown', (e) => {
         case 'Escape':
             focusedTextBox.blur();
             break;
-        case 'Enter':
-            // Allow default behavior for newline
-            break;
     }
 });
 
@@ -338,19 +320,22 @@ document.addEventListener('input', function(e) {
 });
 
 // Add clipboard URL check on startup
-window.addEventListener('load', () => {
+window.addEventListener('load', loadUrlFromClipboard);
+
+function loadUrlFromClipboard() {
     const clipboardText = clipboard.readText().trim();
     if (clipboardText && clipboardText.length > 0) {
         console.log('Found URL in clipboard:', clipboardText);
         handleUrl(clipboardText);
-    } else {
-        alert('No URL found in clipboard');
     }
-});
+}
 
 // Add keyboard shortcuts for render and export
 document.addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.ctrlKey && !e.shiftKey) {
+    if (e.key.toLowerCase() === 'v' && e.ctrlKey && !currentVideoPath) {
+        e.preventDefault();
+        loadUrlFromClipboard();
+    } else if (e.key === 'Enter' && e.ctrlKey && !e.shiftKey) {
         e.preventDefault();
         if (currentVideoPath) {
             exportToClipboard();
@@ -359,6 +344,16 @@ document.addEventListener('keydown', (e) => {
         e.preventDefault();
         if (currentVideoPath) {
             render();
+        }
+    } else if (e.key.toLowerCase() === 't') {
+        // Check if any text box is focused
+        const focusedTextBox = document.querySelector('.overlay-text-input:focus');
+        if (!focusedTextBox) {
+            // Create new text box if none is focused
+            const newTextBox = createNewTextBox();
+            newTextBox.classList.add('active');
+            newTextBox.focus();
+            e.preventDefault();
         }
     }
 });
