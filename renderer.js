@@ -399,3 +399,8 @@ document.addEventListener('mouseup', () => {
     isDragging = false;
     currentDragElement = null;
 }); 
+
+window.addEventListener('scroll', () => {
+    window.scrollTo(0, 0);
+});
+  
