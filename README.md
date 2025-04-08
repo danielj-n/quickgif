@@ -62,5 +62,4 @@ npm start
   a webpage. This would also be a huge performance boost. There's a much better
   project than this one that does maybe all of this called [Gifcurry](https://github.com/lettier/gifcurry).
 
-Examples:
-TODO
+![](doc/quickgifexample.gif)
