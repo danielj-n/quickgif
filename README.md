@@ -48,6 +48,7 @@ npm start
 
 ## Other notes:
 - There's no binary available because we never generated one
+- This repo has no license because this is a deeply unserious project
 - There is a shell.nix however npm requires a lot of dynamic linking which gets
   tricky on Nix. The cursor environment does some magic to find all these libraries and run this correctly from its
   command line.
